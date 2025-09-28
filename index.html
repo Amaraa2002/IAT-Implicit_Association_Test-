@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>IAT Words — 7 Parts</title>
+<style>
+  body { font-family:"Times New Roman",serif; background:#f7fbfd; margin:0; }
+  .frame { border:6px solid #bfe3f1; background:#fff; padding:24px 30px; width:900px; max-width:94vw; margin:36px auto; }
+  .top { display:grid; grid-template-columns:1fr auto 1fr; }
+  .hint { font-size:13px; color:#333; text-align:center; }
+  .left,.right { font-size:32px; font-weight:700; color:#2f9b30; margin-top:6px; }
+  .left { text-align:left } .right { text-align:right }
+  .part { text-align:center; margin:18px 0; font-weight:700; }
+  .instructions { font-size:16px; line-height:1.55; color:#111; }
+  .instructions .category{ color:#2f9b30; font-weight:700 }
+  .instructions .redx{ color:#c62828; font-weight:800 }
+  .start { text-align:center; margin-top:22px; font-size:18px; font-weight:700 }
+  .btn{ display:inline-block; padding:10px 16px; border:1px solid #b3b3b3; border-radius:4px; background:#f6f6f6; cursor:pointer; font-weight:700 }
+  .btn:active{ transform:translateY(1px) }
+  .hidden { display:none }
+  .stimulus { text-align:center; font-size:46px; font-weight:700; margin:56px 0 12px }
+  .bigx{ color:#c62828; font-weight:800; font-size:42px; text-align:center; margin-top:6px; }
+  .form-row{ display:grid; grid-template-columns:180px 1fr; align-items:center; gap:10px; margin:10px 0; }
+  label{ font-weight:700 }
+  input, select{ font-family:inherit; font-size:16px; padding:8px 10px; border:1px solid #b3b3b3; border-radius:4px }
+  .note{ font-size:14px; color:#444 }
+  .err{ color:#c62828; font-size:14px; margin-top:8px }
+
+  /* Completion UI */
+  .results-box { border:6px solid #bfe3f1; background:#fff; padding:20px 24px; width:900px; max-width:94vw; margin:24px auto; }
+  .results-title { font-size:18px; font-weight:700; margin-bottom:8px; }
+  .results-role { margin:8px 0; padding:10px; border-radius:8px; background:#f3f7fb; }
+  .results-actions { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+  .btn-primary { background:#2b6df6; color:#fff; border-color:#2b6df6; }
+  .btn-success { background:#2fb56e; color:#fff; border-color:#2fb56e; }
+  .btn-warning { background:#f0ad4e; color:#fff; border-color:#f0ad4e; }
+  .small-note { margin-top:10px; color:#6b7280; font-size:13px; }
+  pre.results-preview { white-space:pre-wrap; background:#0b1220; color:#eaf0ff; padding:10px; border-radius:6px; margin-top:12px; overflow:auto; max-height:240px; }
+</style>
+</head>
+<body>
+
+<!-- ===== 1) SETUP ===== -->
+<div class="frame" id="setup">
+  <div class="part">Оролцогчийн мэдээлэл</div>
+  <div class="form-row">
+    <label for="pid">ID / Нэр<span style="color:#c62828">*</span></label>
+    <input id="pid" placeholder="Жишээ: B.Batbayar" />
+  </div>
+  <div class="form-row">
+    <label for="age">Нас<span style="color:#c62828">*</span></label>
+    <input id="age" type="number" min="5" max="120" placeholder="Жишээ: 23" />
+  </div>
+  <div class="form-row">
+    <label for="gender">Хүйс</label>
+    <select id="gender">
+      <option value="">Сонгох</option>
+      <option value="male">Эр</option>
+      <option value="female">Эм</option>
+      <option value="other">Бусад</option>
+    </select>
+  </div>
+  <div class="note">Enter дарж эсвэл доорх товчийг дарж үргэлжлүүлнэ.</div>
+  <div style="text-align:center; margin-top:14px">
+    <button class="btn" type="button" onclick="window.goIntro()">Зааварт шилжих</button>
+  </div>
+  <div class="err hidden" id="setupErr"></div>
+</div>
+
+<!-- ===== 2) INSTRUCTIONS ===== -->
+<div class="frame hidden" id="intro">
+  <div class="top">
+    <div class="hint">Press "E" for</div><div></div><div class="hint">Press "I" for</div>
+    <div class="left" id="leftCategory">Би</div><div></div><div class="right" id="rightCategory">Тэд</div>
+  </div>
+  <div class="part" id="introPartLabel">Part 1 of 7</div>
+  <div class="instructions" id="instructionsText">
+    <p>Зүүн гарын дунд эсвэл долоовор хурууг компьютерийн гарны E товчлуур, баруун гарын дунд эсвэл долоовор хурууг компьютерийн гарны I товчлуур дээр тус тус байрлуул. ... Та зааврыг ойлгосон бол "ЗАЙ АВАХ ТОВЧЛУУР" дарж туршилтыг эхэлнэ.</p>
+  </div>
+  <div class="start">Press the <b>space bar</b> when you are ready to start.</div>
+  <div style="text-align:center; margin-top:12px">
+    <button class="btn" id="btnStart">Эхлэх</button>
+  </div>
+</div>
+
+<!-- ===== 3) STAGE ===== -->
+<div class="frame hidden" id="stage">
+  <div class="top">
+    <div class="hint">Press "E" for</div><div></div><div class="hint">Press "I" for</div>
+    <div class="left" id="stageLeftCategory">Би</div><div></div><div class="right" id="stageRightCategory">Тэд</div>
+  </div>
+  <div class="part" id="partLabel">Part 1 of 7</div>
+  <div class="stimulus" id="stimulusWord">Smile</div>
+  <div id="errorX" class="bigx hidden">X</div>
+</div>
+
+<!-- ===== 4) COMPLETION (mount) ===== -->
+<div id="completionMount"></div>
+
+<script>
+/* ========== Constants & Data ========== */
+const TOTAL_PARTS = 7;
+
+const SELF_WORDS = ["Би", "надад", "миний", "минийх", "өөрөө"];
+const OTHER_WORDS = ["тэднийг", "тэдний", "тэднийх", "тэдэнд", "тэд"];
+const POS_WORDS = ["гайхамшигтай", "үзэсгэлэнтэй", "сайхан", "сайн", "жаргалтай"];
+const NEG_WORDS = ["Шоовдор", "зовлонтой", "харгис", "аймаар", "ядаргаатай"];
+
+// Instructions for each part
+const PART_INSTRUCTIONS = [
+  // Part 1: Self vs Others
+  "Зүүн гарын дунд эсвэл долоовор хурууг компьютерийн гарны E товчлуур, баруун гарын дунд эсвэл долоовор хурууг компьютерийн гарны I товчлуур дээр тус тус байрлуул. Дэлгэцийн зүүн дээд талд \"Би\", баруун дээд талд \"Тэд\" гэсэн 2 ангилал өгөгдөнө. Дэлгэцийн дээд талд өгөгдсөн хоёр ангилалд хамаарах үгнүүд дэлгэцийн голд нэг нэгээрээ гарч ирнэ. Зүүн талын \"Би\" ангилалд хамаарах үг гарч ирвэл E товчлуурыг; харин баруун талын \"Тэд\" ангилалд хамаарах үг гарч ирвэл I товчлуурыг дар. Үг бүр зөвхөн эдгээрийн аль нэг ангилалд хамаарна. Хэрэв Та алдаа гаргавал дэлгэцийн голд \"Х\" гарч ирнэ. Хэрэв Та алдаа гаргавал зөв товчлуурыг дар. Энэхүү даалгавар нь гүйцэтгэсэн хугацаагаар хэмжигддэг тул \"ЧАДАХ ЧИНЭЭГЭЭРЭЭ ХУРДАН\" мөн аль болох \"АЛДААГҮЙ ГҮЙЦЭТГЭ\". Хэрэв Та хэтэрхий удаан ажиллаж, олон алдаа гаргавал үр дүнг тооцох боломжгүй болно. Даалгаврыг хийж гүйцэтгэхэд ойролцоогоор 5 минут шаардагдана. Танд амжилт хүсье. Та зааврыг ойлгосон бол \"ЗАЙ АВАХ ТОВЧЛУУР\" дарж туршилтыг эхэлнэ.",
+
+  // Part 2: Positive vs Negative
+  "Дэлгэцийн дээд талын өмнөх ангилалууд өөрчлөгдөж дэлгэцийн зүүн дээд талд \"Сайн\", баруун дээд талд \"Муу\" гэсэн 2 ангилал өгөгдсөн байна. Мөн 2 ангилалд хамаарах үгс ч өөрчлөгдсөн. Гэхдээ даалгаврын дүрэм хэвээрээ. Зүүн талын \"Сайн\" ангилалд хамаарах үг гарч ирвэл E товчлуурыг; харин баруун талын \"Муу\" ангилалд хамаарах үг гарч ирвэл I товчлуурыг дар. Үг бүр зөвхөн эдгээрийн аль нэг ангилалд хамаарна. Хэрэв Та алдаа гаргавал дэлгэцийн голд \"Х\" гарч ирнэ. Хэрэв Та алдаа гаргавал зөв товчлуурыг дар. Даалгаврыг \"ЧАДАХ ЧИНЭЭГЭЭРЭЭ ХУРДАН ГҮЙЦЭТГЭ\". Та зааврыг ойлгосон бол \"ЗАЙ АВАХ ТОВЧЛУУР\" дарж туршилтыг эхэлнэ.",
+
+  // Part 3: Self+Positive vs Others+Negative
+  "Дэлгэцийн дээд талд өмнө нь тус тусдаа байсан дөрвөн ангилал одоо нийлж, дэлгэцийн зүүн дээд талд \"Би эсвэл Сайн\", \"Бусад эсвэл Муу\" гэсэн бүлэг болон харагдаж байна. Дэлгэцийн голд гарах үг бүр зөвхөн нэг л бүлэгт хамаарна гэдгийг сана. Тухайлбал, хэрэв Би ба Сайн ангиллууд тус тусдаа байсан бол \"Би\"-д хамаарах утгатай үгс \"Сайн\" ангилалд хамаарахгүй байсан бол одоо энэ хоёр ангилал хамтдаа яригдах болно. Дэлгэцийн дээд талд байгаа ногоон ба цагаан ангиллууд болон дэлгэцийн голд гарах үгс тохирох ангилалаа ялгаж танихад тусална. Зүүн, баруун талд байгаа дөрвөн бүлэгт үгнүүдийг ангилахдаа E ба I товчлуурыг ашигла, зөв товчлуурыг дарж алдаагаа зас. Та зааврыг ойлгосон бол \"ЗАЙ АВАХ ТОВЧЛУУР\" дарж туршилтыг эхэлнэ.",
+
+  // Part 4: Repeat Self+Positive vs Others+Negative
+  "Үгсийг дахин дөрвөн ангилалд хамааруул. Чадах чинээгээрээ хурдан, аль болох алдаагүй гүйцэтгэх ёстойгоо санаарай. Дэлгэцийн дээд талд байгаа ногоон, цагаан ангиллууд болон дэлгэцийн голд гарах үгс тохирох ангилалаа ялган танихад тусална. Зүүн, баруун талд байгаа дөрвөн бүлэгт үгсийг ангилахдаа E ба I товчлуурыг ашигла, хэрэв та алдаа гаргавал зөв товчлуурыг дарж алдаагаа зас. Та зааврыг ойлгосон бол \"ЗАЙ АВАХ ТОВЧЛУУР\" дарж туршилтыг эхэлнэ.",
+
+  // Part 5: Others vs Self (reversed)
+  "Дэлгэцийн дээд талыг анхаар, зөвхөн хоёр ангилал харагдаж байна, мөн ангилалуудын өмнөх байр нь солигдсон байна. Дэлгэцийн зүүн дээд талд байсан \"Би\" ангилал баруун талд, баруун дээд талд байсан \"Тэд\" ангилал зүүн талд байрласан байна. Энэхүү байр нь солигдсон ангилалтай ажилла. Үгсийг баруун, зүүн тал руу ангилахдаа E ба I товчлуурыг ашигла. Хэрэв та алдаа гаргавал зөв товчлуурыг дарж алдаагаа зас. Та зааврыг ойлгосон бол \"ЗАЙ АВАХ ТОВЧЛУУР\" дарж туршилтыг эхэлнэ.",
+
+  // Part 6: Others+Positive vs Self+Negative
+  "Дэлгэцийн дээд тал руу хар, одоо дөрвөн ангилал хоёр хоёроороо нийлж харагдаж байна. Ялгах үг бүр зөвхөн нэг л ангилалд хамаарна гэдгийг санаарай. Дэлгэцийн дээд талд байгаа ногоон, цагаан ангиллууд болон дэлгэцийн голд гарах үгс тохирох ангиллаа ялган танихад тусална. Зүүн, баруун талд байгаа дөрвөн бүлэгт үгсийг ангилахдаа E ба I товчлуурыг ашигла, хэрэв та алдаа гаргавал зөв товчлуурыг дарж алдаагаа зас. Та зааврыг ойлгосон бол \"ЗАЙ АВАХ ТОВЧЛУУР\" дарж туршилтыг эхэлнэ.",
+
+  // Part 7: Repeat Others+Positive vs Self+Negative
+  "Үгсийг дахин дөрвөн ангилалд ялга. Чадах чинээгээрээ хурдан, аль болох алдаагүй гүйцэтгэх ёстойгоо санаарай. Дэлгэцийн дээд талд байгаа ногоон, цагаан нэр ангилалууд болон дэлгэцийн голд гарах үгс тохирох ангилалаа ялган танихад тусална. Зүүн, баруун талд байгаа дөрвөн бүлэгт үгсийг ангилахдаа E ба I товчлуурыг ашигла, хэрэв та алдаа гаргавал зөв товчлуурыг дарж алдаагаа зас. Та зааврыг ойлгосон бол \"ЗАЙ АВАХ ТОВЧЛУУР\" дарж туршилтыг эхэлнэ. Эхлэе"
+];
+
+const PART_CONFIG = [
+  { words: createWordList(SELF_WORDS, 10, OTHER_WORDS, 10), leftCat: "Би", rightCat: "Тэд", leftWords: SELF_WORDS },
+  { words: createWordList(POS_WORDS, 10, NEG_WORDS, 10), leftCat: "Сайн", rightCat: "Муу", leftWords: POS_WORDS },
+  { words: createWordList(SELF_WORDS, 5, OTHER_WORDS, 5, POS_WORDS, 5, NEG_WORDS, 5), leftCat: "Би эсвэл Сайн", rightCat: "Тэд эсвэл Муу", leftWords: SELF_WORDS.concat(POS_WORDS) },
+  { words: createWordList(SELF_WORDS, 10, OTHER_WORDS, 10, POS_WORDS, 10, NEG_WORDS, 10), leftCat: "Би эсвэл Сайн", rightCat: "Тэд эсвэл Муу", leftWords: SELF_WORDS.concat(POS_WORDS) },
+  { words: createWordList(SELF_WORDS, 10, OTHER_WORDS, 10), leftCat: "Тэд", rightCat: "Би", leftWords: OTHER_WORDS },
+  { words: createWordList(SELF_WORDS, 5, OTHER_WORDS, 5, POS_WORDS, 5, NEG_WORDS, 5), leftCat: "Тэд эсвэл Сайн", rightCat: "Би эсвэл Муу", leftWords: OTHER_WORDS.concat(POS_WORDS) },
+  { words: createWordList(SELF_WORDS, 10, OTHER_WORDS, 10, POS_WORDS, 10, NEG_WORDS, 10), leftCat: "Тэд эсвэл Сайн", rightCat: "Би эсвэл Муу", leftWords: OTHER_WORDS.concat(POS_WORDS) }
+];
+
+/* ========== State ========== */
+const setup = document.getElementById('setup');
+const intro = document.getElementById('intro');
+const stage = document.getElementById('stage');
+const errEl = document.getElementById('setupErr');
+const pidEl = document.getElementById('pid');
+const ageEl = document.getElementById('age');
+const genderEl = document.getElementById('gender');
+const completionMount = document.getElementById('completionMount');
+
+const participant = { id:"", age:null, gender:"" };
+
+let currentPart = 0;
+let i = 0;
+let SEQ = [];
+let needCorrection = false;
+let expectedKey = null;
+let _trialStart = 0;
+
+let testStartedAt = null;
+let testFinishedAt = null;
+
+let records = [];
+let trialIndex = 0;
+
+/* ========== Helpers ========== */
+function shuffle(a){
+  const arr = a.slice();
+  for(let j=arr.length-1;j>0;j--){
+    const k=Math.floor(Math.random()*(j+1));
+    [arr[j],arr[k]]=[arr[k],arr[j]];
+  }
+  return arr;
+}
+
+function createWordList(...args) {
+  let result = [];
+  for(let i = 0; i < args.length; i += 2) {
+    const wordArray = args[i];
+    const count = args[i + 1];
+    const repetitions = Math.ceil(count / wordArray.length);
+    for(let rep = 0; rep < repetitions; rep++) result = result.concat(wordArray);
+  }
+  return result;
+}
+
+function showErr(msg){ errEl.textContent = msg; errEl.classList.remove('hidden'); }
+function hideErr(){ errEl.classList.add('hidden'); }
+
+/* ========== Flow ========== */
+window.goIntro = function(){
+  const id = (pidEl.value||"").trim();
+  const age = parseInt(ageEl.value,10);
+  if(!id){ showErr('ID / Нэр заавал оруулна.'); return; }
+  if(!Number.isFinite(age) || age<5 || age>120){ showErr('Насыг 5–120 хооронд оруулна уу.'); return; }
+  participant.id=id; participant.age=age; participant.gender=(genderEl.value||'');
+  hideErr();
+  setup.classList.add('hidden');
+  startStage();
+};
+
+function startStage(){
+  if(!testStartedAt) testStartedAt = new Date().toISOString();
+  currentPart = 0;
+  showIntroForPart();
+}
+
+function showIntroForPart(){
+  intro.classList.remove('hidden');
+  stage.classList.add('hidden');
+  const config = PART_CONFIG[currentPart];
+  document.getElementById('introPartLabel').textContent = `Part ${currentPart+1} of ${TOTAL_PARTS}`;
+  document.getElementById('leftCategory').textContent = config.leftCat;
+  document.getElementById('rightCategory').textContent = config.rightCat;
+  document.getElementById('instructionsText').innerHTML = `<p>${PART_INSTRUCTIONS[currentPart]}</p>`;
+}
+
+function startPart(){
+  intro.classList.add('hidden');
+  stage.classList.remove('hidden');
+  const config = PART_CONFIG[currentPart];
+  document.getElementById('partLabel').textContent = `Part ${currentPart+1} of ${TOTAL_PARTS}`;
+  document.getElementById('stageLeftCategory').textContent = config.leftCat;
+  document.getElementById('stageRightCategory').textContent = config.rightCat;
+  SEQ = shuffle(config.words);
+  i = 0;
+  needCorrection = false;
+  showWord();
+}
+
+function endPhase(){
+  if(currentPart < TOTAL_PARTS-1){
+    currentPart++;
+    showIntroForPart();
+  }else{
+    testFinishedAt = new Date().toISOString();
+    document.getElementById('stimulusWord').textContent = 'All 7 parts done!';
+    document.getElementById('errorX').classList.add('hidden');
+    finalizeResults();
+  }
+}
+
+/* ========== Stimulus & Answer ========== */
+function showWord(){
+  const wordEl = document.getElementById('stimulusWord');
+  const errX = document.getElementById('errorX');
+  errX.classList.add('hidden');
+  needCorrection = false;
+
+  if(i < SEQ.length){
+    const w = SEQ[i];
+    wordEl.textContent = w;
+    const config = PART_CONFIG[currentPart];
+    expectedKey = config.leftWords.includes(w) ? 'E' : 'I';
+    _trialStart = performance.now();
+  }else{
+    endPhase();
+  }
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.code==='Space'){
+    if(!intro.classList.contains('hidden')){ e.preventDefault(); startPart(); return; }
+  }
+  if(e.code==='Enter' && !setup.classList.contains('hidden')){ e.preventDefault(); window.goIntro(); return; }
+
+  if(stage.classList.contains('hidden')) return;
+
+  if(e.key==='e' || e.key==='i'){
+    const key = (e.key==='e') ? 'E' : 'I';
+    const rt  = Math.round(performance.now() - (_trialStart || performance.now()));
+    const word = SEQ[i];
+
+    if(needCorrection){
+      if(key===expectedKey){ i++; showWord(); }
+      return;
+    }
+
+    const correct = (key===expectedKey) ? 1 : 0;
+
+    trialIndex++;
+    records.push({
+      idx: trialIndex,
+      part_index: currentPart+1,
+      phase_name: `Part ${currentPart+1} of ${TOTAL_PARTS}`,
+      part_trial_idx: (i+1),
+      word,
+      expected_key: expectedKey,
+      pressed_key: key,
+      correct,
+      rt_ms: rt
+    });
+
+    if(correct===1){ i++; showWord(); }
+    else{ document.getElementById('errorX').classList.remove('hidden'); needCorrection = true; }
+  }
+});
+
+document.getElementById('btnStart').addEventListener('click', (e)=>{ e.preventDefault(); startPart(); });
+
+/* ========== CSV + Auto Email (3-phase style) + Completion UI ========== */
+const AUTO_EMAIL_ENDPOINT = "https://script.google.com/macros/s/AKfycbxAvkJhNPDomwIox0Aycvw-DKEJxyvLivEKlMC5G-bBmqJb9qzWgyK0a3p0TVrUmB7cuw/exec";
+
+/*** ✅ UTF-8 BOM — Excel-д Монгол үг зөв харагдахад ЧУХАЛ ***/
+const UTF8_BOM = "\uFEFF";
+
+/** CSV builder (meta нь зөвхөн эхний мөрөнд) */
+function toCSV(rows){
+  const cols = [
+    'idx','part_index','phase_name','part_trial_idx',
+    'word','expected_key','pressed_key','correct','rt_ms'
+  ];
+  const header = cols.join(',');
+
+  const body = rows.map(r =>
+    cols.map(c => `"${String(r[c] ?? '').replace(/"/g,'""')}"`).join(',')
+  ).join('\n');
+
+  const metaLine =
+    `participant_id=${participant.id},age=${participant.age},gender=${participant.gender},started_at=${testStartedAt},finished_at=${testFinishedAt}`;
+
+  // BOM + meta + data
+  return UTF8_BOM + metaLine + '\n' + header + '\n' + body;
+}
+
+/** Имэйл илгээх — csv_data дотор BOM-той CSV явна */
+async function sendAutoEmail(payload){
+  try{
+    await fetch(AUTO_EMAIL_ENDPOINT, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(payload),
+      mode:'no-cors'
+    });
+    console.log('Email send requested (no-cors).');
+  }catch(err){
+    console.error('Auto email error:', err);
+  }
+}
+
+function finalizeResults(){
+  const csv = toCSV(records);
+  const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  const safeId = (participant.id||'anon').replace(/[^\w]/g,'_');
+  const filename = `iat_results_${safeId}_${ts}.csv`;
+
+  // Phase stats (товч)
+  const phaseStats = Array.from({length: TOTAL_PARTS}, (_, idx) => {
+    const phaseRows = records.filter(r => r.part_index === (idx+1));
+    const avgE = avg(phaseRows.filter(x => x.pressed_key === 'E').map(x => x.rt_ms));
+    const avgI = avg(phaseRows.filter(x => x.pressed_key === 'I').map(x => x.rt_ms));
+    return {
+      part: idx+1,
+      name: `Part ${idx+1} of ${TOTAL_PARTS}`,
+      total: phaseRows.length,
+      avgE: isFinite(avgE)? Math.round(avgE) : null,
+      avgI: isFinite(avgI)? Math.round(avgI) : null
+    };
+  });
+
+  const totalTime = records.reduce((sum, r) => sum + (Number(r.rt_ms)||0), 0);
+
+  const payload = {
+    meta: {
+      generated_at: new Date().toISOString(),
+      participant: participant.id,
+      age: participant.age,
+      gender: participant.gender,
+      total_records: records.length,
+      total_time_ms: totalTime,
+      phases: phaseStats
+    },
+    participant_data: {
+      participant: participant.id,
+      age: participant.age,
+      gender: participant.gender,
+      started_at: testStartedAt,
+      finished_at: testFinishedAt
+    },
+    test_records: records,
+    csv_data: csv
+  };
+
+  // Имэйл автоматаар
+  sendAutoEmail(payload);
+
+  // Completion UI
+  stage.classList.add('hidden');
+  renderCompletionUI(csv, filename);
+}
+
+function avg(a){ if(!a.length) return NaN; return a.reduce((x,y)=>x+y,0)/a.length; }
+function escapeHtml(str){ return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+/** Participant UI — таталт гараар */
+function renderCompletionUI(csv, filename){
+  const previewText = [
+    `Participant: ${participant.id} | Age: ${participant.age} | Gender: ${participant.gender}`,
+    `Started: ${testStartedAt} | Finished: ${testFinishedAt}`,
+    `Trials: ${records.length} | Correct: ${records.filter(r=>r.correct===1).length} | Incorrect: ${records.filter(r=>r.correct===0).length}`,
+    ``,
+    csv.split('\n').slice(0,6).join('\n') + '\n...'
+  ].join('\n');
+
+  completionMount.innerHTML = `
+    <div class="results-box">
+      <div class="results-title">Тест дууслаа — Танд баярлалаа</div>
+      <div class="results-role"><strong>Оролцогч:</strong> Хүсвэл өөрөө файлаа татаж авч болно.</div>
+      <div class="results-actions">
+        <button class="btn btn-success" id="btn-download">Файлыг татаж авах (CSV)</button>
+        <button class="btn btn-warning" id="btn-toggle">Хариултыг харах</button>
+      </div>
+      <div class="small-note">Тайлбар: Имэйл админ тал руу автоматаар илгээгдсэн.</div>
+      <pre class="results-preview" id="results-preview" style="display:none;">${escapeHtml(previewText)}</pre>
+    </div>
+  `;
+
+  document.getElementById('btn-download').onclick = function(){
+    // ✅ BOM-тай CSV-г UTF-8 гэж зарлаж татуулах
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  };
+
+  document.getElementById('btn-toggle').onclick = function(){
+    const pr = document.getElementById('results-preview');
+    if (pr.style.display === 'none'){ pr.style.display = 'block'; this.textContent='Хариултыг нуух'; }
+    else { pr.style.display = 'none'; this.textContent='Хариултыг харах'; }
+  };
+}
+</script>
+</body>
+</html>
